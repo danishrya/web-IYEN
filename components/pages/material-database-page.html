@@ -1,0 +1,352 @@
+"use client"
+
+import { useState, useMemo } from "react"
+import { Search, Filter, Leaf, MapPin, TrendingDown } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+
+interface Material {
+  id: string
+  name: string
+  type: string
+  source: string
+  region: string
+  sustainability: string
+  carbonFootprint: number
+  recyclable: boolean
+  local: boolean
+  price: string
+  description: string
+  applications: string[]
+}
+
+const materials: Material[] = [
+  {
+    id: "1",
+    name: "Bambu Rebar",
+    type: "Reinforcement",
+    source: "Bambu Lokal",
+    region: "Jawa Timur",
+    sustainability: "Sangat Tinggi",
+    carbonFootprint: 2.1,
+    recyclable: true,
+    local: true,
+    price: "Rp 450K/bundle",
+    description: "Bambu berkualitas tinggi sebagai pengganti baja untuk struktur tertentu",
+    applications: ["Kolom", "Balok", "Rangka Atap"],
+  },
+  {
+    id: "2",
+    name: "Bata Daur Ulang",
+    type: "Wall Material",
+    source: "Daur Ulang",
+    region: "Multi-Region",
+    sustainability: "Tinggi",
+    carbonFootprint: 0.8,
+    recyclable: true,
+    local: true,
+    price: "Rp 1.2M/1000 biji",
+    description: "Bata berkualitas yang diproduksi dari limbah konstruksi",
+    applications: ["Dinding", "Pagar", "Lantai"],
+  },
+  {
+    id: "3",
+    name: "Kayu Bersertifikat FSC",
+    type: "Wood Material",
+    source: "Hutan Terkelola",
+    region: "Sumatera, Kalimantan",
+    sustainability: "Tinggi",
+    carbonFootprint: 0.5,
+    recyclable: true,
+    local: true,
+    price: "Rp 2.5M/m³",
+    description: "Kayu dari hutan yang dikelola berkelanjutan dengan sertifikat FSC",
+    applications: ["Kusen", "Plafon", "Lantai Kayu"],
+  },
+  {
+    id: "4",
+    name: "Beton Ramah Lingkungan",
+    type: "Concrete",
+    source: "Reclaimed Aggregate",
+    region: "Jawa, Bali",
+    sustainability: "Sedang-Tinggi",
+    carbonFootprint: 3.5,
+    recyclable: false,
+    local: true,
+    price: "Rp 850K/m³",
+    description: "Beton dengan agregate daur ulang mengurangi limbah konstruksi",
+    applications: ["Pondasi", "Lantai", "Struktur"],
+  },
+  {
+    id: "5",
+    name: "Atap Genteng Tanah Liat",
+    type: "Roofing",
+    source: "Tanah Liat Lokal",
+    region: "Jawa Tengah, Jawa Timur",
+    sustainability: "Tinggi",
+    carbonFootprint: 1.2,
+    recyclable: true,
+    local: true,
+    price: "Rp 3M/1000 biji",
+    description: "Genteng tradisional yang tahan lama dan dapat didaur ulang sepenuhnya",
+    applications: ["Atap Kemiringan", "Struktur Tradisional"],
+  },
+  {
+    id: "6",
+    name: "Adobe Blocks",
+    type: "Wall Material",
+    source: "Tanah & Jerami",
+    region: "Nusa Tenggara, Timor",
+    sustainability: "Sangat Tinggi",
+    carbonFootprint: 0.1,
+    recyclable: true,
+    local: true,
+    price: "Rp 2M/1000 biji",
+    description: "Blok bumi yang dibuat dari tanah dan jerami, fully biodegradable",
+    applications: ["Dinding", "Partisi Internal"],
+  },
+  {
+    id: "7",
+    name: "Fiber Cement Panels",
+    type: "Wall Cladding",
+    source: "Limbah Semen",
+    region: "Riau, Lampung",
+    sustainability: "Sedang",
+    carbonFootprint: 2.8,
+    recyclable: false,
+    local: true,
+    price: "Rp 850K/lembar",
+    description: "Panel dari serat beton untuk fasad dan cladding eksterior",
+    applications: ["Fasad", "Cladding Eksternal", "Partition"],
+  },
+  {
+    id: "8",
+    name: "Kaca Daur Ulang",
+    type: "Glass",
+    source: "Limbah Kaca",
+    region: "Jawa, Sumatera",
+    sustainability: "Tinggi",
+    carbonFootprint: 2.0,
+    recyclable: true,
+    local: true,
+    price: "Rp 650K/m²",
+    description: "Kaca yang diproduksi 100% dari limbah kaca daur ulang",
+    applications: ["Jendela", "Partisi Kaca", "Dekorasi"],
+  },
+]
+
+export default function MaterialDatabasePage() {
+  const [searchTerm, setSearchTerm] = useState("")
+  const [selectedType, setSelectedType] = useState("All")
+  const [selectedRegion, setSelectedRegion] = useState("All")
+  const [showFilters, setShowFilters] = useState(false)
+
+  const types = ["All", ...new Set(materials.map((m) => m.type))]
+  const regions = ["All", ...new Set(materials.map((m) => m.region))]
+
+  const filteredMaterials = useMemo(() => {
+    return materials.filter((material) => {
+      const matchesSearch =
+        material.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        material.description.toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesType = selectedType === "All" || material.type === selectedType
+      const matchesRegion = selectedRegion === "All" || material.region === selectedRegion
+      return matchesSearch && matchesType && matchesRegion
+    })
+  }, [searchTerm, selectedType, selectedRegion])
+
+  const stats = [
+    { label: "Total Material", value: materials.length },
+    { label: "Lokal", value: materials.filter((m) => m.local).length },
+    { label: "Dapat Daur Ulang", value: materials.filter((m) => m.recyclable).length },
+    {
+      label: "Avg Carbon",
+      value: (materials.reduce((a, b) => a + b.carbonFootprint, 0) / materials.length).toFixed(1),
+    },
+  ]
+
+  return (
+    <div className="flex-1 overflow-auto">
+      <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
+        {/* Header */}
+        <div>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Database Material Ramah Lingkungan</h1>
+          <p className="text-muted-foreground">
+            Temukan material lokal berkelanjutan yang mudah diakses untuk proyek Anda
+          </p>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {stats.map((stat, idx) => (
+            <Card key={idx} className="bg-card border-border">
+              <CardContent className="p-4">
+                <div className="text-sm text-muted-foreground mb-1">{stat.label}</div>
+                <div className="text-2xl font-bold text-primary">{stat.value}</div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Search & Filter */}
+        <div className="space-y-4">
+          <div className="flex gap-2">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-3 w-5 h-5 text-muted-foreground" />
+              <Input
+                placeholder="Cari material..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 bg-input border-border"
+              />
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => setShowFilters(!showFilters)}
+              className="border-border hover:bg-muted"
+            >
+              <Filter className="w-4 h-4 mr-2" />
+              Filter
+            </Button>
+          </div>
+
+          {showFilters && (
+            <div className="p-4 bg-card border border-border rounded-lg space-y-4">
+              <div>
+                <label className="text-sm font-medium text-foreground block mb-2">Tipe Material</label>
+                <div className="flex flex-wrap gap-2">
+                  {types.map((type) => (
+                    <button
+                      key={type}
+                      onClick={() => setSelectedType(type)}
+                      className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+                        selectedType === type
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted text-foreground hover:bg-muted/70"
+                      }`}
+                    >
+                      {type}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-foreground block mb-2">Region</label>
+                <div className="flex flex-wrap gap-2">
+                  {regions.map((region) => (
+                    <button
+                      key={region}
+                      onClick={() => setSelectedRegion(region)}
+                      className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+                        selectedRegion === region
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted text-foreground hover:bg-muted/70"
+                      }`}
+                    >
+                      {region}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Results */}
+        <div className="space-y-4">
+          <div className="text-sm text-muted-foreground">Ditemukan {filteredMaterials.length} material</div>
+
+          {filteredMaterials.length > 0 ? (
+            <div className="grid gap-4">
+              {filteredMaterials.map((material) => (
+                <Card key={material.id} className="bg-card border-border hover:shadow-md transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="grid md:grid-cols-3 gap-6">
+                      {/* Left - Info */}
+                      <div className="md:col-span-2 space-y-4">
+                        <div>
+                          <h3 className="text-lg font-bold text-foreground mb-1">{material.name}</h3>
+                          <p className="text-sm text-muted-foreground">{material.description}</p>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2">
+                          {material.applications.map((app, idx) => (
+                            <span
+                              key={idx}
+                              className="px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded"
+                            >
+                              {app}
+                            </span>
+                          ))}
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div className="flex items-center gap-2">
+                            <MapPin className="w-4 h-4 text-accent" />
+                            <span className="text-muted-foreground">{material.region}</span>
+                          </div>
+                          {material.local && (
+                            <div className="flex items-center gap-2">
+                              <Leaf className="w-4 h-4 text-primary" />
+                              <span className="text-primary font-medium">Lokal</span>
+                            </div>
+                          )}
+                          {material.recyclable && (
+                            <div className="flex items-center gap-2">
+                              <TrendingDown className="w-4 h-4 text-chart-2" />
+                              <span className="text-chart-2 font-medium">Dapat Daur Ulang</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Right - Stats */}
+                      <div className="space-y-4 bg-muted p-4 rounded-lg">
+                        <div>
+                          <div className="text-xs text-muted-foreground mb-1">Keberlanjutan</div>
+                          <div
+                            className={`px-2 py-1 rounded text-sm font-semibold text-center ${
+                              material.sustainability === "Sangat Tinggi"
+                                ? "bg-primary/20 text-primary"
+                                : material.sustainability === "Tinggi"
+                                  ? "bg-chart-2/20 text-chart-2"
+                                  : "bg-accent/20 text-accent"
+                            }`}
+                          >
+                            {material.sustainability}
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className="text-xs text-muted-foreground mb-1">Carbon Footprint</div>
+                          <div className="text-2xl font-bold text-foreground">{material.carbonFootprint}</div>
+                          <div className="text-xs text-muted-foreground">kg CO₂ / unit</div>
+                        </div>
+
+                        <div>
+                          <div className="text-xs text-muted-foreground mb-1">Harga Estimasi</div>
+                          <div className="text-lg font-semibold text-foreground">{material.price}</div>
+                        </div>
+
+                        <Button className="w-full bg-primary hover:bg-primary/90">Pilih</Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card className="bg-card border-border">
+              <CardContent className="p-12 text-center">
+                <p className="text-muted-foreground mb-2">Tidak ada material yang cocok dengan pencarian Anda</p>
+                <p className="text-sm text-muted-foreground">Coba ubah filter atau kata kunci pencarian</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}

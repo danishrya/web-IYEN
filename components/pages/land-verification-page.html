@@ -1,0 +1,320 @@
+"use client"
+
+import { useState } from "react"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Droplet, Leaf, AlertCircle, CheckCircle2 } from "lucide-react"
+
+interface LandData {
+  plotArea: number
+  latitude: number
+  longitude: number
+  soilType: string
+  rainfallRate: number
+}
+
+export default function LandVerificationPage() {
+  const [formData, setFormData] = useState<LandData>({
+    plotArea: 500,
+    latitude: -6.2088,
+    longitude: 106.8456,
+    soilType: "clay",
+    rainfallRate: 200,
+  })
+  const [calculated, setCalculated] = useState(false)
+
+  const soilTypes = [
+    { value: "sand", label: "Pasir", infiltration: 0.35 },
+    { value: "loam", label: "Lempung Berpasir", infiltration: 0.15 },
+    { value: "clay", label: "Lempung", infiltration: 0.08 },
+    { value: "clay-silt", label: "Lempung Berdebu", infiltration: 0.05 },
+  ]
+
+  const calculateLandRequirements = () => {
+    const minRTH = formData.plotArea * 0.3 // 30% minimum RTH
+    const maxBuildable = formData.plotArea * 0.6
+
+    const soilInfiltration = soilTypes.find((s) => s.value === formData.soilType)?.infiltration || 0.08
+
+    const annualRainfall = (formData.rainfallRate * formData.plotArea) / 1000 // m³
+
+    const runoffRate = annualRainfall * (1 - soilInfiltration)
+
+    const infiltrationCapacity = (annualRainfall * soilInfiltration * 0.8) / 365
+
+    const soakerWellDiameter = Math.sqrt((infiltrationCapacity * 4) / (Math.PI * 3.5))
+
+    const soakerWellCount = Math.ceil(runoffRate / (infiltrationCapacity * 365))
+
+    const bioporidimensions = {
+      length: 0.4,
+      width: 0.4,
+      depth: 0.6,
+    }
+
+    const bioporiCount = Math.ceil(
+      runoffRate / 365 / (bioporidimensions.length * bioporidimensions.width * bioporidimensions.depth),
+    )
+
+    return {
+      minRTH,
+      maxBuildable,
+      soakerWellCount,
+      soakerWellDiameter: soakerWellDiameter.toFixed(2),
+      bioporiCount,
+      annualRunoff: runoffRate.toFixed(1),
+      infiltrationCapacity: infiltrationCapacity.toFixed(3),
+    }
+  }
+
+  const result = calculateLandRequirements()
+
+  const monthlyRainfall = [
+    { month: "Jan", rainfall: 280 },
+    { month: "Feb", rainfall: 270 },
+    { month: "Mar", rainfall: 240 },
+    { month: "Apr", rainfall: 220 },
+    { month: "May", rainfall: 190 },
+    { month: "Jun", rainfall: 120 },
+    { month: "Jul", rainfall: 100 },
+    { month: "Aug", rainfall: 110 },
+    { month: "Sep", rainfall: 130 },
+    { month: "Oct", rainfall: 190 },
+    { month: "Nov", rainfall: 230 },
+    { month: "Dec", rainfall: 300 },
+  ]
+
+  return (
+    <div className="flex-1 overflow-auto">
+      <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
+        {/* Header */}
+        <div>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Verifikasi Tepat Guna Lahan</h1>
+          <p className="text-muted-foreground">
+            Hitung kebutuhan RTH dan rekomendasi sistem drainase untuk lokasi Anda
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Input Form */}
+          <div className="space-y-6">
+            <Card className="bg-card border-border">
+              <CardHeader>
+                <CardTitle>Data Lokasi</CardTitle>
+                <CardDescription>Masukkan detail karakteristik lahan Anda</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Plot Area */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Luas Plot (m²)</label>
+                  <Input
+                    type="number"
+                    value={formData.plotArea}
+                    onChange={(e) => setFormData({ ...formData, plotArea: Number.parseFloat(e.target.value) || 0 })}
+                    className="bg-input border-border"
+                  />
+                </div>
+
+                {/* Coordinates */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">Latitude</label>
+                    <Input
+                      type="number"
+                      step="0.0001"
+                      value={formData.latitude}
+                      onChange={(e) => setFormData({ ...formData, latitude: Number.parseFloat(e.target.value) || 0 })}
+                      className="bg-input border-border"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">Longitude</label>
+                    <Input
+                      type="number"
+                      step="0.0001"
+                      value={formData.longitude}
+                      onChange={(e) => setFormData({ ...formData, longitude: Number.parseFloat(e.target.value) || 0 })}
+                      className="bg-input border-border"
+                    />
+                  </div>
+                </div>
+
+                {/* Soil Type */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Tipe Tanah</label>
+                  <select
+                    value={formData.soilType}
+                    onChange={(e) => setFormData({ ...formData, soilType: e.target.value })}
+                    className="w-full px-4 py-2 rounded-lg bg-input border border-border text-foreground"
+                  >
+                    {soilTypes.map((s) => (
+                      <option key={s.value} value={s.value}>
+                        {s.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Rainfall Rate */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Rata-rata Curah Hujan (mm/tahun)</label>
+                  <Input
+                    type="number"
+                    value={formData.rainfallRate}
+                    onChange={(e) => setFormData({ ...formData, rainfallRate: Number.parseFloat(e.target.value) || 0 })}
+                    className="bg-input border-border"
+                  />
+                </div>
+
+                <Button onClick={() => setCalculated(true)} className="w-full bg-primary hover:bg-primary/90">
+                  Verifikasi Lahan
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Results */}
+          {calculated && (
+            <div className="space-y-6">
+              {/* RTH Requirement */}
+              <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-muted-foreground">Ruang Terbuka Hijau (RTH) Minimal</span>
+                    <Leaf className="w-5 h-5 text-primary" />
+                  </div>
+                  <div className="text-3xl font-bold text-primary">{result.minRTH.toFixed(0)}</div>
+                  <div className="text-sm text-muted-foreground">m² (30% dari luas plot)</div>
+                </CardContent>
+              </Card>
+
+              {/* Buildable Area */}
+              <Card className="bg-gradient-to-br from-accent/10 to-accent/5 border-accent/20">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-muted-foreground">Luas Terbangun Maksimal</span>
+                    <CheckCircle2 className="w-5 h-5 text-accent" />
+                  </div>
+                  <div className="text-3xl font-bold text-accent">{result.maxBuildable.toFixed(0)}</div>
+                  <div className="text-sm text-muted-foreground">m² (60% dari luas plot)</div>
+                </CardContent>
+              </Card>
+
+              {/* Annual Runoff */}
+              <Card className="bg-gradient-to-br from-chart-2/10 to-chart-2/5 border-chart-2/20">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-muted-foreground">Aliran Air Tahunan</span>
+                    <Droplet className="w-5 h-5 text-chart-2" />
+                  </div>
+                  <div className="text-3xl font-bold text-chart-2">{result.annualRunoff}</div>
+                  <div className="text-sm text-muted-foreground">m³/tahun</div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </div>
+
+        {/* Drainage Solutions */}
+        {calculated && (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold text-foreground mb-2">Solusi Sistem Drainase</h2>
+              <p className="text-muted-foreground">Rekomendasi jumlah dan dimensi infrastruktur penyerapan air</p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Soaker Wells */}
+              <Card className="bg-card border-border">
+                <CardHeader>
+                  <CardTitle className="text-lg">Sumur Resapan</CardTitle>
+                  <CardDescription>Untuk resapan air secara bertahap</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Jumlah Sumur</span>
+                      <span className="text-2xl font-bold text-primary">{result.soakerWellCount}</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground">Rekomendasi jumlah sumur resapan</div>
+                  </div>
+
+                  <div className="bg-muted p-4 rounded-lg space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-foreground">Diameter Sumur</span>
+                      <span className="font-semibold text-foreground">{result.soakerWellDiameter} m</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground">Kedalaman standar: 3.5 m</div>
+                  </div>
+
+                  <div className="p-3 bg-primary/10 border border-primary/20 rounded-lg">
+                    <div className="flex gap-2">
+                      <AlertCircle className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                      <p className="text-sm text-foreground">Penempatan merata untuk hasil optimal</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Biopores */}
+              <Card className="bg-card border-border">
+                <CardHeader>
+                  <CardTitle className="text-lg">Biopori</CardTitle>
+                  <CardDescription>Untuk resapan air cepat di area terbangun</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Jumlah Biopori</span>
+                      <span className="text-2xl font-bold text-accent">{result.bioporiCount}</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground">Rekomendasi jumlah lubang biopori</div>
+                  </div>
+
+                  <div className="bg-muted p-4 rounded-lg space-y-2">
+                    <div className="text-sm font-medium text-foreground mb-2">Dimensi Standar</div>
+                    <div className="space-y-1 text-xs text-muted-foreground">
+                      <div>Panjang: 0.4 m</div>
+                      <div>Lebar: 0.4 m</div>
+                      <div>Kedalaman: 0.6 m</div>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-accent/10 border border-accent/20 rounded-lg">
+                    <div className="flex gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" />
+                      <p className="text-sm text-foreground">Jarak ideal antar biopori: 2-3 meter</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        )}
+
+        {/* Monthly Rainfall Chart */}
+        {calculated && (
+          <Card className="bg-card border-border">
+            <CardHeader>
+              <CardTitle>Curah Hujan Bulanan</CardTitle>
+              <CardDescription>Proyeksi berdasarkan data historis</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={monthlyRainfall}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="rainfall" fill="var(--color-chart-2)" name="Curah Hujan (mm)" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </div>
+  )
+}
