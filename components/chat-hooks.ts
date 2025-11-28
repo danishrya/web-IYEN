@@ -6,10 +6,10 @@ import { useState, useCallback } from "react"
 
 // Hook untuk manage chat history
 export function useChatHistory(maxMessages = 50) {
-  const [history, setHistory] = useState([])
+  const [history, setHistory] = useState<any[]>([])
 
   const addToHistory = useCallback(
-    (message) => {
+    (message: any) => {
       setHistory((prev) => {
         const updated = [message, ...prev]
         // Limit history size
@@ -30,7 +30,7 @@ export function useChatHistory(maxMessages = 50) {
 export function useTypingIndicator(delay = 800) {
   const [isTyping, setIsTyping] = useState(false)
   const timeoutRef = useCallback(
-    (callback) => {
+    (callback: () => void) => {
       setIsTyping(true)
       const timeout = setTimeout(() => {
         setIsTyping(false)

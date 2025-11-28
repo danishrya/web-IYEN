@@ -4,7 +4,6 @@ import type React from "react"
 
 import { useState, useRef, useEffect } from "react"
 import { Send, Plus } from "lucide-react"
-import { cn } from "@/lib/utils"
 
 interface ChatInputProps {
   onSend: (message: string) => Promise<void>
@@ -32,6 +31,10 @@ export function ChatInput({ onSend, isLoading, onNew }: ChatInputProps) {
         textareaRef.current.style.height = "auto"
       }
     }
+  }
+
+  function cn(arg0: string, arg1: string): string | undefined {
+    throw new Error("Function not implemented.")
   }
 
   return (
