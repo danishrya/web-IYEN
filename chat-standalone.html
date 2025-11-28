@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eco-build Check - AI Chat Assistant</title>
+    <link rel="stylesheet" href="chat-standalone.css">
+</head>
+<body>
+    <!-- Added splash screen -->
+    <div class="splash-screen" id="splashScreen">
+        <!-- Added decorative house and ornaments around splash content -->
+        <div class="splash-decorations">
+            <div class="decoration decoration-top-left">
+                <div class="small-house">🏠</div>
+            </div>
+            <div class="decoration decoration-top-right">
+                <div class="floating-leaf">🍃</div>
+            </div>
+            <div class="decoration decoration-bottom-left">
+                <div class="floating-leaf">🍃</div>
+            </div>
+            <div class="decoration decoration-bottom-right">
+                <div class="small-house">🏠</div>
+            </div>
+        </div>
+
+        <div class="splash-content">
+            <div class="splash-icon-container">
+                <!-- Wrapped main icon in container with background -->
+                <div class="splash-icon-bg"></div>
+                <div class="splash-icon">🌱</div>
+            </div>
+            <h1 class="splash-title">Eco Assistant</h1>
+            <p class="splash-subtitle">AI untuk Desain Ramah Lingkungan</p>
+            <div class="splash-loading">
+                <div class="splash-dot"></div>
+                <div class="splash-dot"></div>
+                <div class="splash-dot"></div>
+            </div>
+            <p class="splash-hint">Memproses data ekologis...</p>
+        </div>
+    </div>
+
+    <!-- Main Chat App -->
+    <div class="chat-container" id="chatContainer" style="display: none;">
+        <!-- Header -->
+        <div class="chat-header">
+            <div class="header-content">
+                <h1>Eco Assistant</h1>
+                <p>Konsultasi desain ramah lingkungan</p>
+            </div>
+            <button id="newChatBtn" class="new-chat-btn">
+                <span>New Chat</span>
+            </button>
+        </div>
+
+        <!-- Messages Area -->
+        <div class="chat-messages" id="chatMessages">
+            <div class="welcome-message">
+                <div class="welcome-icon">🌱</div>
+                <h2>Selamat datang di Eco Assistant!</h2>
+                <p>Tanyakan apapun tentang desain bangunan ramah lingkungan, material berkelanjutan, atau strategi mengurangi jejak karbon.</p>
+                
+                <div class="suggestions">
+                    <h3>Pertanyaan Populer:</h3>
+                    <button class="suggestion-btn" onclick="sendSuggestion('Berapa jejak karbon rata-rata rumah 100 meter persegi?')">
+                        📊 Jejak Karbon Rumah
+                    </button>
+                    <button class="suggestion-btn" onclick="sendSuggestion('Material apa yang paling ramah lingkungan untuk konstruksi?')">
+                        🏗️ Material Sustainable
+                    </button>
+                    <button class="suggestion-btn" onclick="sendSuggestion('Bagaimana cara maksimalkan RTH di lahan terbatas?')">
+                        🌿 Ruang Hijau Optimal
+                    </button>
+                    <button class="suggestion-btn" onclick="sendSuggestion('Tips desain pasif untuk rumah tropis?')">
+                        ☀️ Desain Pasif
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="chat-input-area">
+            <form id="chatForm" onsubmit="handleSendMessage(event)">
+                <textarea 
+                    id="chatInput" 
+                    placeholder="Tanya tentang desain ramah lingkungan..."
+                    rows="1"
+                ></textarea>
+                <button type="submit" class="send-btn">
+                    <span>Kirim</span>
+                </button>
+            </form>
+            <p class="input-hint">Tekan Ctrl + Enter untuk mengirim</p>
+        </div>
+    </div>
+
+    <script src="chat-standalone.js"></script>
+</body>
+</html>
